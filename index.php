@@ -9,12 +9,14 @@ if(!$db){
     echo $db->lastErrorMsg();
 } else {
     $db->query("CREATE TABLE IF NOT EXISTS students(id INTEGER PRIMARY KEY, name CHAR(255), mobile CHAR(50), address STRING);");
-    $tablesquery = $db->query("SELECT * FROM students");
-    //$tables = $tablesquery->fetchArray(SQLITE3_ASSOC);
-    $result = $tablesquery->fetchArray();
+    $results = $db->query('SELECT id, name, mobile, address FROM students');
     
 }
-
+if(isset($_REQUEST['id'])){
+    $id = $_REQUEST['id'];
+    $studentDataQuery = $db->query("SELECT id, name, mobile, address FROM students WHERE id=$id");
+    $studentData = $studentDataQuery->fetchArray();
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -36,10 +38,16 @@ if(!$db){
         <tbody>
             <form action="action.php" method="post">
                 <tr>
-                    <td><input type="text" name="userName" ></td>
-                    <td><input type="text" name="userMobile" ></td>
-                    <td><input type="text" name="userAddress" ></td>
-                    <td><button type="submit" name="create" value="save">Save</button></td>
+                    
+                    <td><input type="text" name="userName" value="<?php if(isset($studentData)) echo $studentData['name'];?>" ></td>
+                    <td><input type="text" name="userMobile" value="<?php if(isset($studentData)) echo $studentData['mobile'];?>"></td>
+                    <td><input type="text" name="userAddress" value="<?php if(isset($studentData)) echo $studentData['address'];?>"></td>
+                    <?php if(isset($studentData)){ ?>
+                    <input type="hidden" name="userId" value="<?php if(isset($studentData)) echo $studentData['id'];?>" >
+                    <td><button type="submit" name="action" value="update">Update</button> | <a href="index.php">Add New</a></td>
+                    <?php } else {?>
+                    <td><button type="submit" name="action" value="save">Save</button></td>
+                    <?php }?>
                 </tr>
             </form>
         </tbody>
@@ -56,21 +64,16 @@ if(!$db){
         </thead>
         <tbody>
             <?php
-                if(count($result) > 0) {
-            
-                    for ($i = 0; $i <= count($result); $i++){
+               while ($row = $results->fetchArray()) {
             ?>
             <tr>
-                <td><?=$result[0]?></td>
-                <td><?=$result[1]?></td>
-                <td><?=$result[2]?></td>
-                <td><?=$result[3]?></td>
-                <td>Edit | Delete</td>
+                <td><?=$row['id']?></td>
+                <td><?=$row['name']?></td>
+                <td><?=$row['mobile']?></td>
+                <td><?=$row['address']?></td>
+                <td><a href="action.php?id=<?=$row['id']?>&action=edit">Edit</a> | <a href="action.php?id=<?=$row['id']?>&action=delete">Delete</a></td>
             </tr>
-            <?php
-                    }
-                }
-            ?>
+            <?php }?>
         </tbody>
     </table>
 </body>
